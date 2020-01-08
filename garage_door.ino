@@ -231,7 +231,24 @@ void connectToAWS()
 void connectToWiFi()
 {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  char const *ssid = "ssid";
+  char const *pass = "pass";
+  int nets = WiFi.scanNetworks();
+  for(int i = 0; i < nets; i += 1) {
+    Serial.println(WiFi.SSID(i));
+    if (WiFi.SSID(i) == WIFI_SSID_1) {
+      ssid = WIFI_SSID_1;
+      pass = WIFI_PASSWORD_1;
+      break;
+    } else if (WiFi.SSID(i) == WIFI_SSID_2) {
+      ssid = WIFI_SSID_2;
+      pass = WIFI_PASSWORD_2;
+      break;
+    }
+  }
+  Serial.println("using ssid " + String(ssid));
+  WiFi.begin(ssid, pass);
 
   // Only try 15 times to connect to the WiFi
   int retries = 0;
