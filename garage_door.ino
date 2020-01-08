@@ -146,6 +146,19 @@ void reportPosition(position pos)
   reportedObj["position"] = position_name(pos);
   reportedObj["wifi_strength"] = WiFi.RSSI();
 
+  // once up or down is reached, go into "FREE" mode
+  // so door can be operated by standard controls
+  // this is still not entirely safe. e.g. if someone
+  // operates the manual control to prevent the door
+  // from going down, the Shadow will still have its
+  // desired state as down. You definitely don't want
+  // to use target positioning if you don't have
+  // obstruction detection.
+  if (pos == DOWN || pos == UP || pos == ERROR) {
+    JsonObject desiredObj = stateObj.createNestedObject("desired");
+    desiredObj["position"] = position_name(FREE);
+  }
+
   // Publish the message to AWS
   char jsonBuffer[512];
   serializeJson(jsonDoc, jsonBuffer);
