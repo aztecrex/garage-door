@@ -116,13 +116,13 @@ void loop() {
   }
   client.loop();
 
-  bool targeted = (stabilize == 0) && (desired != FREE) && (desired != UNKNOWN) && (current != ERROR) && (current != desired);
+  bool targeted = (stabilize == 0) && (desired != FREE) && (desired != UNKNOWN) && (current != desired);
   
   encode_status(current, desired);
-  if (operate || targeted) {
+  if ((operate || targeted) && current != ERROR) {
     pulse(500);
     operate = 0;
-    stabilize = 3;
+    stabilize = 6;
     delay(500);
   } else {
     delay(1000);
