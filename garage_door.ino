@@ -95,6 +95,13 @@ position position_value(char const *n) {
 char buffer[100];
 int operate = 0;
 
+int stabilize = 0;
+
+void pulse(int duty) {
+    digitalWrite(actl, HIGH);
+    delay(500);
+    digitalWrite(actl, LOW);  
+}
 
 void loop() {
 
@@ -109,16 +116,19 @@ void loop() {
   }
   client.loop();
 
+  bool targeted = (stabilize == 0) && (desired != FREE) && (desired != UNKNOWN) && (current != ERROR) && (current != desired);
+  
   encode_status(current, desired);
-  if (operate) {
-    digitalWrite(actl, HIGH);
-    delay(500);
-    digitalWrite(actl, LOW);
+  if (operate || targeted) {
+    pulse(500);
     operate = 0;
+    stabilize = 3;
     delay(500);
   } else {
     delay(1000);
   }
+
+  if (stabilize > 0) stabilize = stabilize - 1;
 }
 
 // The name of the device. This MUST match up with the name defined in the AWS console
