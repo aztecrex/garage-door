@@ -50,7 +50,7 @@ void setup() {
   
   pinMode(tops, INPUT_PULLUP);
   pinMode(bots, INPUT_PULLUP);
-  reportPosition(last);
+  reportPosition(UNKNOWN, UNKNOWN);
 
 }
 
@@ -60,10 +60,10 @@ position decode_position() {
   return calc_position(b, t);
 }
 
-void encode_status(position current, position want)  {
+void encode_status(position cur, position want)  {
   int u = LOW;
   int d = LOW;
-  if (current != want) {
+  if (cur != want) {
     if (want == UP) {
       u = HIGH;
     } else if (want == DOWN) {
@@ -104,7 +104,7 @@ void loop() {
     char const * currents = position_name(current);
     sprintf(buffer, "transition from %s to %s\n", lasts, currents);
     Serial.print(buffer);
-    reportPosition(current);
+    reportPosition(current, desired);
     last = current;
   }
   client.loop();
@@ -137,13 +137,13 @@ void loop() {
 // How many times we should attempt to connect to AWS
 #define AWS_MAX_RECONNECT_TRIES 50
 
-void reportPosition(position pos)
+void reportPosition(position cur, position des)
 {
   StaticJsonDocument<256> jsonDoc;
   JsonObject stateObj = jsonDoc.createNestedObject("state");
   JsonObject reportedObj = stateObj.createNestedObject("reported");
 
-  reportedObj["position"] = position_name(pos);
+  reportedObj["position"] = position_name(cur);
   reportedObj["wifi_strength"] = WiFi.RSSI();
 
   // once up or down is reached, go into "FREE" mode
@@ -154,7 +154,7 @@ void reportPosition(position pos)
   // desired state as down. You definitely don't want
   // to use target positioning if you don't have
   // obstruction detection.
-  if (pos == DOWN || pos == UP || pos == ERROR) {
+  if ((cur == DOWN && des != UP) || (cur == UP && des != DOWN) || cur == ERROR) {
     JsonObject desiredObj = stateObj.createNestedObject("desired");
     desiredObj["position"] = position_name(FREE);
   }
